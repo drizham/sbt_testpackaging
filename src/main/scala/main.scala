@@ -6,7 +6,6 @@
 // arg2 - path to write report to 
 object PrintReport{
 //object main extends Any {
-
 	def main(args: Array[String]) = {
 		if (args.length !=3) {
 			Console.err.println("Usage: PrintReport <terms list file> <input log> <output report>")
@@ -17,48 +16,39 @@ object PrintReport{
 		}
 
 		import com.izham.welt.Tools
-		
-		val termFilePath = args(0)	// get term list file name
-		println("Terms list file: " + termFilePath)
-
-		val inFilePath = args(1)	// get the input file name
-		println("Cleaning Welt der Wunder log: " + inFilePath)
-
-		// TODO uncommment when file to write to works
-		val outFilePath = args(2)
-		println("Clean file written to: " + outFilePath)
-
 		import scala.io.Source     // read string from file
 		import java.io.PrintWriter // write strings to file
 
-		val source = Source.fromFile(inFilePath)
-		// TODO: Fix when out is required
-		val out = new PrintWriter(outFilePath) // file to write column data to
-		val lineIterator = source.getLines // get iterator
-		
-		// read in terms of interest
-		// read terms to array (as the list is bound to be small)
-		val searchFor = io.Source.fromFile(termFilePath).getLines.toArray
-		println("Terms searched for:")		
-		searchFor.foreach(println)
+		try {
+			val termFilePath = args(0)	// get term list file path
+			val inFilePath = args(1)	// get the input file path
+			val outFilePath = args(2)	// output file path
 
-		// print header in output file
-		out.println("PlayListStartDate, AssetID, Title")
+			println("Terms file path: " + termFilePath)
+			println("Clean file written to: " + outFilePath)
 
-		// tools
-		val tool = new Tools		
+			val source = Source.fromFile(inFilePath)
 
-		for (l <- lineIterator){
-		    // skip the lines that contain "This report was.."
-		    // only parse data lines
-		    if (l.startsWith("Welt der Wunder Loop")) {
-		        //getLinesOfInterest(searchFor, l)
-		        if(tool.getLinesOfInterest2(searchFor, l) != "") out.println(tool.retInterest0(tool.parse(l)))
-		        // out.println(getLinesOfInterest(searchFor, l))
-		    }
-		}
-		// TODO: Uncommment when req
-		out.close()		// close write file
+			val searchFor = io.Source.fromFile(termFilePath).getLines.toArray
+			println("Terms searched for:")		
+			searchFor.foreach(println)
 
+			val lineIterator = source.getLines // get iterator
+			val out = new PrintWriter(outFilePath) // file to write column data to
+			
+			out.println("PlayListStartDate, AssetID, Title")	// print header in output file
+			
+			val tool = new Tools	// intstantiate welt log tools	
+
+			for (l <- lineIterator){
+			    if (l.startsWith("Welt der Wunder Loop")) {// only parse data lines
+			        if(tool.getLinesOfInterest2(searchFor, l) != "") out.println(tool.retInterest0(tool.parse(l)))
+			    }
+			}
+			out.close()
+
+			} catch {
+				case ex: Exception => println("Error: Either search terms file/ log file not found")
+			}
 	}
 }
